@@ -1,6 +1,11 @@
+import os
 from functools import lru_cache
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+
+# Allow fallback to .env.example when .env is not present (helps dev convenience)
+_env_file = ".env" if os.path.exists(".env") else ".env.example"
 
 
 class Settings(BaseSettings):
@@ -18,7 +23,7 @@ class Settings(BaseSettings):
     DEBUG: bool = False
 
     model_config = SettingsConfigDict(
-        env_file=".env",
+        env_file=_env_file,
         env_file_encoding="utf-8",
         extra="ignore",
     )
