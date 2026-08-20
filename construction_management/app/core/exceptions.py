@@ -4,7 +4,9 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 
 
-def get_exception_handlers():
+def register_exception_handlers(app):
+    """Đăng ký các exception handlers cho ứng dụng FastAPI"""
+    
     # Hàm trả về lỗi 422 ko đúng định dạng
     def validation_exception_handler(request: Request, exc: RequestValidationError):
         return JSONResponse(
@@ -45,8 +47,7 @@ def get_exception_handlers():
             },
         )
 
-    return {
-        RequestValidationError: validation_exception_handler,
-        HTTPException: http_exception_handler,
-        Exception: general_exception_handler,
-    }
+    # Đăng ký các handlers
+    app.add_exception_handler(RequestValidationError, validation_exception_handler)
+    app.add_exception_handler(HTTPException, http_exception_handler)
+    app.add_exception_handler(Exception, general_exception_handler)
