@@ -33,7 +33,7 @@ class User(Base):
     owned_sites = relationship(
         "ConstructionSite",
         back_populates="owner",
-        foreign_keys="ConstructionSite.owner_id",
+        foreign_keys="[ConstructionSite.owner_id]",
     )
 
     # User N-N ConstructionSite
