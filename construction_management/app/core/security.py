@@ -2,7 +2,7 @@ from datetime import datetime, timedelta, timezone
 from typing import Optional
 
 from fastapi import Depends, HTTPException, status
-from fastapi.security import HTTPBearer, HTTPAuthCredentials
+from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
 from passlib.context import CryptContext
 from sqlalchemy.orm import Session
@@ -12,7 +12,7 @@ from app.db.database import get_db
 from app.models.user import User
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-security = HTTPBearer()
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 
 
 # ---------- Mật khẩu ----------
@@ -56,17 +56,23 @@ def decode_token(token: str) -> Optional[dict]:
 # ---------- OAuth2 Dependency ----------
 
 def get_current_user(
-    credentials: HTTPAuthCredentials = Depends(security),
+    token: str = Depends(oauth2_scheme),
     db: Session = Depends(get_db)
 ) -> User:
     """
-    Xác thực JWT token từ Authorization header
-    - Lấy token từ HTTPAuthCredentials (Bearer token)
+    Xây dựng OAuth2PasswordBearer + dependency get_current_user để đọc user từ JWT
+    - Lấy token từ Authorization header (Bearer token)
     - Giải mã token
     - Lấy user từ database
     - Trả về User object nếu token hợp lệ
     """
-    token = credentials.credentials
+    if not token:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Could not validate credentials",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    
     data = decode_token(token)
     
     if not data:
